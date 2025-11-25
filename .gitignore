@@ -1,0 +1,15 @@
+# Spring Boot
+target/
+*.log
+
+# React
+node_modules/
+build/
+
+# IDE
+/.metadata/
+/.idea/
+/.vscode/
+
+# OS
+.DS_Store
