@@ -30,7 +30,6 @@ public class HospitalServiceOfferingController {
 		
 		categoryDTO categoryDTO = new categoryDTO();
 		categoryDTO.setId(serviceDTO.getCategoryId());
-		
 		return ResponseEntity.ok( serviceOfferingService.createService(hospitalDTO, serviceDTO, categoryDTO));
 	}
 
