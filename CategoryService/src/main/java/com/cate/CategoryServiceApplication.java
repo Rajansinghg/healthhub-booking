@@ -1,4 +1,4 @@
-package com.doctor;
+package com.cate;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
