@@ -1,0 +1,116 @@
+package com.book.controller;
+
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.book.entity.Booking;
+import com.book.entity.HospitalReport;
+import com.book.enums.BookingStatus;
+import com.book.mapper.BookingMapper;
+import com.book.payload.dto.BookingDTO;
+import com.book.payload.dto.BookingRequest;
+import com.book.payload.dto.BookingSlotDTO;
+import com.book.payload.dto.HospitalDTO;
+import com.book.payload.dto.ServiceDTO;
+import com.book.payload.dto.UserDTO;
+import com.book.service.BookingService;
+
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping("/api/bookings")
+@RequiredArgsConstructor
+public class BookingController {
+
+	private final BookingService bookingService;
+
+	@PostMapping
+	ResponseEntity<Booking> creatBooking(@RequestBody BookingRequest booking) {
+		UserDTO user = new UserDTO();
+		user.setId(1L);
+
+		HospitalDTO hospital = new HospitalDTO();
+		hospital.setId(1L);
+		hospital.setOpenTime(LocalTime.of(9, 0));
+		hospital.setCloseTime(LocalTime.of(20, 0));
+
+		Set<ServiceDTO> serviceDTOs = new HashSet<>();
+		ServiceDTO serviceDTO = new ServiceDTO();
+		serviceDTO.setId(1L);
+		serviceDTO.setPrice(200);
+		serviceDTO.setDuration(35);
+		serviceDTO.setName("Skin Care");
+
+		serviceDTOs.add(serviceDTO);
+
+		return ResponseEntity.ok(bookingService.creatBooking(booking, user, hospital, serviceDTOs));
+	}
+
+	ResponseEntity<Boolean> isTimeSlotAvilable(HospitalDTO hospitalDTO, LocalDateTime bookingStartTime,
+			LocalDateTime bookingEndTime) {
+		return ResponseEntity.ok(bookingService.isTimeSlotAvilable(hospitalDTO, bookingStartTime, bookingEndTime));
+	}
+
+	@GetMapping("/customer")
+	ResponseEntity<Set<BookingDTO>> getBookingByCustomer() {
+
+		return ResponseEntity.ok(getBookingDTOs(bookingService.getBookingByCustomer(1L)));
+	}
+	@GetMapping("/hospital")
+	ResponseEntity<Set<BookingDTO>> getBookingByHospital() {
+		return ResponseEntity.ok(getBookingDTOs(bookingService.getBookingByHospital(1L)));
+	}
+
+	private Set<BookingDTO> getBookingDTOs(List<Booking> bookings) {
+		return bookings.stream()
+				.map(booking -> {
+					return BookingMapper.toDTO(booking);
+				}).collect(Collectors.toSet());
+	}
+
+	@GetMapping("/{id}")
+	ResponseEntity<BookingDTO> getBookingById(@PathVariable Long id) {
+		return ResponseEntity.ok(BookingMapper.toDTO( bookingService.getBookingById(id)));
+	}
+
+	@PutMapping("/{bookingId}/status")
+	ResponseEntity<BookingDTO> updateBookingStatus(@PathVariable Long bookingId,@RequestParam(required = false) BookingStatus status) {
+		return ResponseEntity.ok(BookingMapper.toDTO(bookingService.updateBooking(bookingId, status)));
+	}
+
+	@GetMapping("/slots/hospital/{hospitalId}/data/{date}")
+	ResponseEntity<List<BookingSlotDTO>> getBookkingsByDate(@RequestParam LocalDateTime date,
+			@RequestParam Long hospitalId) {
+		
+		List<Booking> bookings = bookingService.getBookkingsByDate(date, hospitalId);
+		
+		List<BookingSlotDTO> slotDTOs = bookings.stream().map(booking -> {
+			BookingSlotDTO slotDTO = new BookingSlotDTO();
+			slotDTO.setStartTime(booking.getStartTime());
+			slotDTO.setEndTime(booking.getEndTime());
+			return slotDTO;
+		}).collect(Collectors.toList());
+		
+		return ResponseEntity.ok(slotDTOs);
+	}
+
+	@GetMapping("/report")
+	ResponseEntity<HospitalReport> getHospitalReport() {
+		return ResponseEntity.ok(bookingService.getHospitalReport(1L));
+	}
+
+}

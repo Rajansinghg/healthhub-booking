@@ -66,8 +66,17 @@ public class BookingServiceImpl implements BookingService{
 
 		List<Booking> existBookings = getBookingByHospital(hospitalDTO.getId());
 		
+		// debug logging - add at top of method (use your logger, or System.out for quick dev)
+		System.out.println("DEBUG: bookingStartTime = " + bookingStartTime);
+		System.out.println("DEBUG: bookingEndTime   = " + bookingEndTime);
+		System.out.println("DEBUG: hospitalDTO open = " + hospitalDTO.getOpenTime());
+		System.out.println("DEBUG: hospitalDTO close= " + hospitalDTO.getCloseTime());
 		LocalDateTime hospitalOpenTime = hospitalDTO.getOpenTime().atDate(bookingStartTime.toLocalDate());
-		LocalDateTime hospitalCloseTime = hospitalDTO.getOpenTime().atDate(bookingStartTime.toLocalDate());
+		LocalDateTime hospitalCloseTime = hospitalDTO.getCloseTime().atDate(bookingStartTime.toLocalDate());
+		System.out.println("DEBUG: hospitalOpenTime  = " + hospitalOpenTime);
+		System.out.println("DEBUG: hospitalCloseTime = " + hospitalCloseTime);
+
+
 		
 		if(bookingStartTime.isBefore(hospitalOpenTime) || bookingEndTime.isAfter(hospitalCloseTime)) {
 			throw new RuntimeException("Booking time must be within salon's working hours");

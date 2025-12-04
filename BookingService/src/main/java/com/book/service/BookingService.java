@@ -22,7 +22,7 @@ public interface BookingService {
 	
 	List<Booking> getBookingByHospital(Long hospitalId);
 	
-	 Booking getBookingById(Long id);
+	Booking getBookingById(Long id);
 	
 	Booking updateBooking(Long bookingId, BookingStatus status);
 	
