@@ -2,6 +2,7 @@ package com.pay.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,8 +41,23 @@ public class PaymentController {
 	ResponseEntity<PaymentOrder> getPaymentOrderById(@PathVariable("id") Long id) {
 		return ResponseEntity.ok(paymentServic.getPaymentOrderById(id));
 	}
+	
+	
+	@PatchMapping("/proceed")
+	ResponseEntity<Boolean> proceadPayment(@RequestParam String paymentId,@RequestParam String paymentLinkId) throws RazorpayException {
+		
+		PaymentOrder paymentOrder =  paymentServic.getPaymentOrderByPaymentId(paymentLinkId);
+		
+		Boolean paymentOrderRes =  paymentServic.proceadPayment(paymentOrder, paymentId, paymentLinkId);
+		
+		return ResponseEntity.ok(paymentOrderRes);
+		
+		
+	}
 
 	PaymentOrder getPaymentOrderByPaymentId(String PaymentId) {
 		return null;
 	}
+	
+	
 }
