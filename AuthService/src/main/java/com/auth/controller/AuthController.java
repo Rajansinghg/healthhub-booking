@@ -40,7 +40,7 @@ public class AuthController {
 		newUser.setPassword(passwordEncoder.encode(request.getPassword()));
 
 		UserDTO savedUser = userClient.register(newUser);
-
+		savedUser.setPassword(null);
 		return ResponseEntity.ok(savedUser);
 	}
 
@@ -49,6 +49,9 @@ public class AuthController {
 	public ResponseEntity<TokenResponse> login(@RequestBody LoginRequest req) {
 
 		UserDTO user = userClient.getUserByEmail(req.getEmail());
+		System.out.println(req.getEmail());
+		System.out.println(req.getPassword());
+		System.out.println(user.getPassword());
 
 		if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
 			return ResponseEntity.status(401).build();

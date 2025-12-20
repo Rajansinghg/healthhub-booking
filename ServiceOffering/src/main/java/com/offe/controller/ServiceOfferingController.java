@@ -10,9 +10,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.offe.entity.ServiceOffering;
-import com.offe.payload.dto.HospitalDTO;
-import com.offe.payload.dto.ServiceDTO;
-import com.offe.payload.dto.categoryDTO;
 import com.offe.service.ServiceOfferingService;
 
 import lombok.RequiredArgsConstructor;

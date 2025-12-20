@@ -66,4 +66,9 @@ public class UserServiceImpl implements UserService {
 		return "User deleated with id -> " + id;
 	}
 
+	@Override
+	public User getUserByEmail(String email) {
+		return userReposatory.findByEmail(email);
+	}
+
 }

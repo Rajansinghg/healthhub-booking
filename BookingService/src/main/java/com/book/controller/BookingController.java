@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,25 +40,21 @@ public class BookingController {
 	private final BookingService bookingService;
 
 	@PostMapping
-	ResponseEntity<Booking> creatBooking(@RequestBody BookingRequest booking) {
-		UserDTO user = new UserDTO();
-		user.setId(1L);
+	public ResponseEntity<Booking> createBooking(@RequestBody BookingRequest bookingRequest,
+			@RequestHeader("USER-ID") Long userId, @RequestHeader("USER-ROLE") String role) {
 
-		HospitalDTO hospital = new HospitalDTO();
-		hospital.setId(1L);
-		hospital.setOpenTime(LocalTime.of(9, 0));
-		hospital.setCloseTime(LocalTime.of(20, 0));
+		if (!role.equalsIgnoreCase("Customer")) {
+			return ResponseEntity.status(403).build();
+		}
 
-		Set<ServiceDTO> serviceDTOs = new HashSet<>();
-		ServiceDTO serviceDTO = new ServiceDTO();
-		serviceDTO.setId(1L);
-		serviceDTO.setPrice(200);
-		serviceDTO.setDuration(35);
-		serviceDTO.setName("Skin Care");
+		UserDTO userDTO = new UserDTO();
+		userDTO.setId(userId);
 
-		serviceDTOs.add(serviceDTO);
+		// TEMP: hospital logic later
+		HospitalDTO hospitalDTO = new HospitalDTO();
+		hospitalDTO.setId(1L);
 
-		return ResponseEntity.ok(bookingService.creatBooking(booking, user, hospital, serviceDTOs));
+		return ResponseEntity.ok(bookingService.creatBooking(bookingRequest, userDTO, hospitalDTO, Set.of()));
 	}
 
 	ResponseEntity<Boolean> isTimeSlotAvilable(HospitalDTO hospitalDTO, LocalDateTime bookingStartTime,
@@ -66,45 +63,60 @@ public class BookingController {
 	}
 
 	@GetMapping("/customer")
-	ResponseEntity<Set<BookingDTO>> getBookingByCustomer() {
+	public ResponseEntity<Set<BookingDTO>> getMyBookings(@RequestHeader("USER-ID") Long userId,
+			@RequestHeader("USER-ROLE") String role) {
 
-		return ResponseEntity.ok(getBookingDTOs(bookingService.getBookingByCustomer(1L)));
+		if (!role.equalsIgnoreCase("Customer")) {
+			return ResponseEntity.status(403).build();
+		}
+
+		return ResponseEntity.ok(bookingService.getBookingByCustomer(userId).stream().map(BookingMapper::toDTO)
+				.collect(Collectors.toSet()));
 	}
+
 	@GetMapping("/hospital")
 	ResponseEntity<Set<BookingDTO>> getBookingByHospital() {
 		return ResponseEntity.ok(getBookingDTOs(bookingService.getBookingByHospital(1L)));
 	}
 
 	private Set<BookingDTO> getBookingDTOs(List<Booking> bookings) {
-		return bookings.stream()
-				.map(booking -> {
-					return BookingMapper.toDTO(booking);
-				}).collect(Collectors.toSet());
+		return bookings.stream().map(booking -> {
+			return BookingMapper.toDTO(booking);
+		}).collect(Collectors.toSet());
 	}
 
 	@GetMapping("/{id}")
-	ResponseEntity<BookingDTO> getBookingById(@PathVariable Long id) {
-		return ResponseEntity.ok(BookingMapper.toDTO( bookingService.getBookingById(id)));
+	public ResponseEntity<BookingDTO> getBookingById(@PathVariable Long id, @RequestHeader("USER-ID") Long userId,
+			@RequestHeader("USER-ROLE") String role) {
+
+		Booking booking = bookingService.getBookingById(id);
+
+		if (role.equalsIgnoreCase("Customer") && !booking.getCustomerId().equals(userId)) {
+			return ResponseEntity.status(403).build();
+		}
+
+		return ResponseEntity.ok(BookingMapper.toDTO(booking));
 	}
 
 	@PutMapping("/{bookingId}/status")
-	ResponseEntity<BookingDTO> updateBookingStatus(@PathVariable Long bookingId,@RequestParam(required = false) BookingStatus status) {
+	ResponseEntity<BookingDTO> updateBookingStatus(@PathVariable Long bookingId,
+			@RequestParam(required = false) BookingStatus status) {
 		return ResponseEntity.ok(BookingMapper.toDTO(bookingService.updateBooking(bookingId, status)));
 	}
 
 	@GetMapping("/slots/hospital/{hospitalId}/data/{date}")
 	ResponseEntity<List<BookingSlotDTO>> getBookkingsByDate(@RequestParam LocalDateTime date,
 			@RequestParam Long hospitalId) {
-		
+
 		List<Booking> bookings = bookingService.getBookkingsByDate(date, hospitalId);
-		
+
 		List<BookingSlotDTO> slotDTOs = bookings.stream().map(booking -> {
 			BookingSlotDTO slotDTO = new BookingSlotDTO();
 			slotDTO.setStartTime(booking.getStartTime());
 			slotDTO.setEndTime(booking.getEndTime());
 			return slotDTO;
 		}).collect(Collectors.toList());
-		
+
 		return ResponseEntity.ok(slotDTOs);
 	}
 

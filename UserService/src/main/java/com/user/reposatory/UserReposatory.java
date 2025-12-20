@@ -5,8 +5,9 @@ import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import com.user.entity.User;
+import java.util.List;
 
 @Repository
-public interface UserReposatory extends JpaRepository<User, Long>{
-
+public interface UserReposatory extends JpaRepository<User, Long> {
+	User findByEmail(String email);
 }

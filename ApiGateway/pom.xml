@@ -48,10 +48,10 @@
         </dependency>
 
         <!-- Security (for JWT filtering) -->
-         <!-- <dependency>
+         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
-        </dependency> -->
+        </dependency> 
 
         <!-- JSON Web Token (Gateway will validate JWT) -->
         <dependency>
